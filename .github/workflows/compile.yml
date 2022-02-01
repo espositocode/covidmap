@@ -1,4 +1,4 @@
-name: Compile Data
+name: compile
 
 on:
   workflow_dispatch:
