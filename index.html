@@ -1,146 +1,150 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
     <title>CovidMap</title>
-    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="author" content="Jonathan Esposito">
+    <meta name="description" content="Plot covid cases geographically over time">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
     <link rel="preconnect" href="https://fonts.googleapis.com"> 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
-</head>
-<style>
-    html, body {
-        background: #19181a;
-        cursor:default;
-        overflow: hidden;
-        width: 100%;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-    }
-
-    #map {
-        bottom: 0px;
-        left: 0px;
-        position: absolute;
-        right: 0px;
-        top: 0px;
-    }
-
-    #timeline {
-        bottom: 0px;
-        height: 100px;
-        left: 0px;
-        position: absolute;
-        right: 0px;
-        z-index: 999;
-    }
-
-    #timeline .line {
-        fill: none;
-        opacity: 1;
-        stroke: #EFE09B;
-        stroke-width: 2px;
-        z-index: 999;
-    }
-
-    #timeline .tick text {
-        fill: #EFE09B;
-        font-family: 'Fira Code', Helvetica, sans-serif;
-        opacity: 0.5;
-    }
-
-    #timeline .tick line {
-        display: none;
-    }
-    
-    #timeline .selection {
-        fill: #5b595c;
-        fill-opacity: 1;
-        opacity: 1;
-        stroke: none;
-        z-index: 1;
-    }
-
-    #topbar {
-        background: #19181a99;
-        font: 13px 'Fira Code', Helvetica, sans-serif;
-        color: #EFE09B; 
-        left: 0px;
-        padding: 5px 10px 5px 10px;
-        position: absolute;
-        right: 0px;
-        top: 0px;
-        z-index: 999;
-    }
-   
-    #topbar .about {
-        color: #EFE09B;
-        text-decoration: underline;
-        
-    }
-    
-    #topbar .right {
-        float: right;
-    }
-
-    #topbar .sep {
-        padding-left: 10px; 
-        padding-right: 10px;
-    }
-
-    #notice {
-        background: #EFE09B;
-        bottom: 100px;
-        border-radius: 5px;
-        border-color: #657b83aa;
-        border-width: 0px;
-        border-style: solid;
-        color: #19181a;
-        display: none;
-        font-family: 'Fira Code', Helvetica, sans-serif;
-        font-size: 13px;
-        position: absolute;
-        margin: 10px;
-        padding: 5px 10px 5px 10px;
-        right: 0px;
-        text-align: center;
-        vertical-align: center;
-        z-index: 999;
-    }
-
-    #notice .arrow {
-        float: right;
-        padding-left: 10px;
-        font-weight: bold;
-    }
-
-    .leaflet-container {
-        background: #221f22;
-    }
-
-    .leaflet-control-attribution {
-        display: none;
-    }
-
-    @media only screen and (max-width: 768px) {
-        #topbar {
-            font-size: 12px;
+    <style>
+        html, body {
+            background: #19181a;
+            cursor:default;
+            overflow: hidden;
+            width: 100%;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
-
-        #notice {
+    
+        #map {
+            bottom: 0px;
             left: 0px;
-            padding-left:19px;
+            position: absolute;
             right: 0px;
-            width: auto;
+            top: 0px;
         }
-
-        .place {
+    
+        #timeline {
+            bottom: 0px;
+            height: 100px;
+            left: 0px;
+            position: absolute;
+            right: 0px;
+            z-index: 999;
+        }
+    
+        #timeline .line {
+            fill: none;
+            opacity: 1;
+            stroke: #EFE09B;
+            stroke-width: 2px;
+            z-index: 999;
+        }
+    
+        #timeline .tick text {
+            fill: #EFE09B;
+            font-family: 'Fira Code', Helvetica, sans-serif;
+            opacity: 0.5;
+        }
+    
+        #timeline .tick line {
             display: none;
         }
-    }
-</style>
+        
+        #timeline .selection {
+            fill: #5b595c;
+            fill-opacity: 1;
+            opacity: 1;
+            stroke: none;
+            z-index: 1;
+        }
+    
+        #topbar {
+            background: #19181a99;
+            font: 13px 'Fira Code', Helvetica, sans-serif;
+            color: #EFE09B; 
+            left: 0px;
+            padding: 5px 10px 5px 10px;
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            z-index: 999;
+        }
+       
+        #topbar .about {
+            color: #EFE09B;
+            text-decoration: underline;
+            
+        }
+        
+        #topbar .right {
+            float: right;
+        }
+    
+        #topbar .sep {
+            padding-left: 10px; 
+            padding-right: 10px;
+        }
+    
+        #notice {
+            background: #EFE09B;
+            bottom: 100px;
+            border-radius: 5px;
+            border-color: #657b83aa;
+            border-width: 0px;
+            border-style: solid;
+            color: #19181a;
+            display: none;
+            font-family: 'Fira Code', Helvetica, sans-serif;
+            font-size: 13px;
+            position: absolute;
+            margin: 10px;
+            padding: 5px 10px 5px 10px;
+            right: 0px;
+            text-align: center;
+            vertical-align: center;
+            z-index: 999;
+        }
+    
+        #notice .arrow {
+            float: right;
+            padding-left: 10px;
+            font-weight: bold;
+        }
+    
+        .leaflet-container {
+            background: #221f22;
+        }
+    
+        .leaflet-control-attribution {
+            display: none;
+        }
+    
+        @media only screen and (max-width: 768px) {
+            #topbar {
+                font-size: 12px;
+            }
+    
+            #notice {
+                left: 0px;
+                padding-left:19px;
+                right: 0px;
+                width: auto;
+            }
+    
+            .place {
+                display: none;
+            }
+        }
+    </style>
+</head>
 <body>
     <div id="map"></div>
     <div id="topbar">Loading..<span class="right"><a href="about.html"><span class="about">About</span></a></span></div>
