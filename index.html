@@ -1,0 +1,455 @@
+<html>
+<head>
+    <title>CovidMap</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com"> 
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<style>
+    html, body {
+        background: #19181a;
+        cursor:default;
+        overflow: hidden;
+        width: 100%;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+    }
+
+    #map {
+        bottom: 0px;
+        left: 0px;
+        position: absolute;
+        right: 0px;
+        top: 0px;
+    }
+
+    #timeline {
+        bottom: 0px;
+        height: 100px;
+        left: 0px;
+        position: absolute;
+        right: 0px;
+        z-index: 999;
+    }
+
+    #timeline .line {
+        fill: none;
+        opacity: 1;
+        stroke: #EFE09B;
+        stroke-width: 2px;
+        z-index: 999;
+    }
+
+    #timeline .tick text {
+        fill: #EFE09B;
+        font-family: 'Fira Code', Helvetica, sans-serif;
+        opacity: 0.5;
+    }
+
+    #timeline .tick line {
+        display: none;
+    }
+    
+    #timeline .selection {
+        fill: #5b595c;
+        fill-opacity: 1;
+        opacity: 1;
+        stroke: none;
+        z-index: 1;
+    }
+
+    #topbar {
+        background: #19181a99;
+        font: 13px 'Fira Code', Helvetica, sans-serif;
+        color: #EFE09B; 
+        left: 0px;
+        padding: 5px 10px 5px 10px;
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        z-index: 999;
+    }
+   
+    #topbar .about {
+        color: #EFE09B;
+        text-decoration: underline;
+        
+    }
+    
+    #topbar .right {
+        float: right;
+    }
+
+    #topbar .sep {
+        padding-left: 10px; 
+        padding-right: 10px;
+    }
+
+    #notice {
+        background: #EFE09B;
+        bottom: 100px;
+        border-radius: 5px;
+        border-color: #657b83aa;
+        border-width: 0px;
+        border-style: solid;
+        color: #19181a;
+        display: none;
+        font-family: 'Fira Code', Helvetica, sans-serif;
+        font-size: 13px;
+        position: absolute;
+        margin: 10px;
+        padding: 5px 10px 5px 10px;
+        right: 0px;
+        text-align: center;
+        vertical-align: center;
+        z-index: 999;
+    }
+
+    #notice .arrow {
+        float: right;
+        padding-left: 10px;
+        font-weight: bold;
+    }
+
+    .leaflet-container {
+        background: #221f22;
+    }
+
+    .leaflet-control-attribution {
+        display: none;
+    }
+
+    @media only screen and (max-width: 768px) {
+        #topbar {
+            font-size: 12px;
+        }
+
+        #notice {
+            left: 0px;
+            padding-left:19px;
+            right: 0px;
+            width: auto;
+        }
+
+        .place {
+            display: none;
+        }
+    }
+</style>
+<body>
+    <div id="map"></div>
+    <div id="topbar">Loading..<span class="right"><a href="about.html"><span class="about">About</span></a></span></div>
+    <div id="timeline"></div>
+    <div id="notice">Drag the slider to show changes over time <span class="arrow">&darr;</span></div>
+</body>
+<script>
+    function preventBehavior(e) {
+        e.preventDefault(); 
+    };
+    document.addEventListener("touchmove", preventBehavior, {passive: false});
+
+    const fips = {
+        "10": "Delaware",
+        "11": "District of Columbia",
+        "12": "Florida",
+        "13": "Georgia",
+        "15": "Hawaii",
+        "16": "Idaho",
+        "17": "Illinois",
+        "18": "Indiana",
+        "19": "Iowa",
+        "20": "Kansas",
+        "21": "Kentucky",
+        "22": "Louisiana",
+        "23": "Maine",
+        "24": "Maryland",
+        "25": "Massachusetts",
+        "26": "Michigan",
+        "27": "Minnesota",
+        "28": "Mississippi",
+        "29": "Missouri",
+        "30": "Montana",
+        "31": "Nebraska",
+        "32": "Nevada",
+        "33": "New Hampshire",
+        "34": "New Jersey",
+        "35": "New Mexico",
+        "36": "New York",
+        "37": "North Carolina",
+        "38": "North Dakota",
+        "39": "Ohio",
+        "40": "Oklahoma",
+        "41": "Oregon",
+        "42": "Pennsylvania",
+        "44": "Rhode Island",
+        "45": "South Carolina",
+        "46": "South Dakota",
+        "47": "Tennessee",
+        "48": "Texas",
+        "49": "Utah",
+        "50": "Vermont",
+        "51": "Virginia",
+        "53": "Washington",
+        "54": "West Virginia",
+        "55": "Wisconsin",
+        "56": "Wyoming",
+        "01": "Alabama",
+        "02": "Alaska",
+        "04": "Arizona",
+        "05": "Arkansas",
+        "06": "California",
+        "08": "Colorado",
+        "09": "Connecticut",
+        "72": "Puerto Rico",
+        "66": "Guam",
+        "78": "Virgin Islands",
+        "60": "American Samoa"
+    }
+
+    const today = new Date()
+
+    const nullbg = '#262427'
+    const colors = ['#EFE09B', '#F1c676', '#F2AC54', '#F19140', '#EB7331', '#DF5B2A', '#C74638', '#B73839', '#A12C45', '#80233A', '#671D46', '#45133C']
+    
+    var notice = false;
+    var country = null;
+    var geoLayer = null;
+    var countryCDMean = null;
+    var selectedDates = null;
+    var selectedRange = [-31, 0];
+    
+    var map = L.map('map', {zoomControl: false}).setView([37, -95], 4)
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: '', 
+        maxZoom: 18,
+        id: 'espositocode/ckz3j0244000514qk2q3zwu6y',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoiZXNwb3NpdG9jb2RlIiwiYSI6ImNreXlqaWFiZzA5cWUybnJtdXhheXh2bXQifQ.WgKbAeSzL4uYV1PlIzjMIw'
+    }).addTo(map);
+
+    function datediff(first, second) {
+        return Math.round((second - first) / (1000 * 60 * 60 * 24));
+    }
+
+    function datedays(days) {
+        var date = new Date();
+        date.setDate(date.getDate() - days);
+        return date;
+    }
+
+    function getcolor(d) {
+        if (!d) {
+            return nullbg;
+        }
+
+        return d > 250 ? colors[11] :
+               d > 175 ? colors[10] :
+               d > 100 ? colors[8] :
+               d > 85  ? colors[8] :
+               d > 75  ? colors[7] :
+               d > 60  ? colors[6] :
+               d > 50  ? colors[5] :
+               d > 40  ? colors[4] :
+               d > 30  ? colors[3] :
+               d > 20  ? colors[2] :
+               d > 10  ? colors[1] :
+                         colors[0];
+    }
+
+    function getmean(metrics) {
+        if (!selectedRange || !metrics) {
+            return null;
+        }
+
+        if (selectedRange[1] == 0) {
+            return Math.round(d3.mean(metrics.slice(selectedRange[0])));
+        } else {
+            return Math.round(d3.mean(metrics.slice(selectedRange[0], selectedRange[1])));
+        }
+    }
+
+    function mouseover(e) {
+        e.target.setStyle({
+            color: "#fff",
+            weight: 2,
+            opacity: 1
+        });
+
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            e.target.bringToFront();
+        }
+
+        topbar(e.target.feature.properties);
+    }
+
+    function mouseout(e) {
+        geoLayer.resetStyle(e.target);
+        topbar();
+    }
+
+    function style(feature) {
+        return {
+            weight: .5, 
+            color: "#EFE09B",
+            fillColor: getcolor(getmean(feature.properties["metrics"])),
+            opacity: .05,
+            fillOpacity: 1
+        };
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: mouseover,
+            mouseout: mouseout,
+        });
+    }
+
+    function topbar(county) {
+        if (!geoLayer || !selectedDates) {
+            // we are still loading data
+            return;
+        }
+
+        content = '<span class="range">' + selectedDates[0].toISOString().split('T')[0] + ' - ' + selectedDates[1].toISOString().split('T')[0] + '</span><span class="place"><span class="sep">|</span>'
+
+        if (county) {
+            content = content + county.name + ", " + fips[county.state]
+        } else {
+            content = content + "United States"
+        }
+
+        var cd = null;
+        if (county) {
+            if (county["metrics"]) {
+                cd = getmean(county["metrics"])
+            }
+        } else {
+            cd = countryCDMean
+        }
+
+        if (cd == null || isNaN(cd)) {
+            cd = "---"
+        } else {
+            cd = cd.toString().padStart(3, "0")
+        }
+
+        content = content + '</span><span class="right">Case Density: ' + cd + '<span class="sep">|</span><a href="about.html"><span class="about">About</span></a></span>'
+        document.getElementById('topbar').innerHTML = content
+    };
+
+    function timeline() {
+        var margin = { top: 0, right: 0, bottom: 0, left: 0 },
+            width = window.innerWidth,
+            height = 100
+
+        var x = d3.scaleTime().range([0, width]);
+        var y = d3.scaleLinear().range([height, 0]);
+
+        var valueline = d3.line()
+            .x(function (d) { return x(d.date); })
+            .y(function (d) { return y(d.case); });
+
+        var svg = d3.select("#timeline").append("svg")
+            .attr("class", "country")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var data = []
+        var length = country["metrics"].length;
+        for (idx = 0; idx < length; idx++) {
+            data.push(
+                {
+                    "case": country["metrics"][idx],
+                    "date": datedays(length - idx)
+                }
+            )
+        };
+
+        x.domain(d3.extent(data, function (d) {
+            return d.date;
+        }));
+
+        y.domain([0, d3.max(data, function (d) {
+            return Math.max(d.case) + 50;
+        })]);
+
+        var defaultSelection = null;
+        if (window.innerWidth > 768) {
+            defaultSelection = [x(d3.utcMonth.offset(x.domain()[1], -1)), x.range()[1]];
+        } else {
+            defaultSelection = [x(d3.utcMonth.offset(x.domain()[1], -2)), x.range()[1]];
+        }
+
+        function brushed(d) {
+            if (notice) {
+                document.getElementById('notice').style.display = 'none';
+                notice = true;
+            }
+
+            if (d3.event.selection) {
+                selectedDates = d3.event.selection.map(x.invert, x)
+            } else {
+                d3.select(this).call(brush.move, defaultSelection);
+                selectedDates = d3.event.selection.map(x.invert, x)
+            }
+
+            selectedRange = [datediff(today, selectedDates[0]), datediff(today, selectedDates[1])]
+            countryCDMean = getmean(country["metrics"])
+
+            d3.select(".selection").style("fill", getcolor(countryCDMean))
+            topbar()
+            if (geoLayer) {
+                geoLayer.resetStyle()
+            }
+        }
+
+        var brush = d3.brushX()
+            .extent([[0, 0], [width, height]])
+            .on("brush end", brushed)
+
+        svg.append("g")
+            .attr("class", "brush")
+            .call(brush)
+            .call(brush.move, defaultSelection);
+
+        svg.append("path")
+            .data([data])
+            .attr("class", "line")
+            .attr("d", valueline);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisTop(x));
+
+        document.getElementById('notice').style.display = 'block';
+        notice = true;
+        topbar()
+    }
+
+    function resize() {
+        d3.select(".country").remove();
+        timeline(country["metrics"])
+    }
+
+    d3.json('/data/county.geo.json', function (data) {
+        geoLayer = L.geoJson(data, { style: style, onEachFeature: onEachFeature, smoothFactor: .5 }).addTo(map);
+        topbar()
+    });
+
+    d3.json('/data/country.json', function (data) {
+        country = data
+        timeline()
+    });
+
+    d3.select(window).on('resize', resize);
+</script>
+</html>
