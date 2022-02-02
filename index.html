@@ -32,7 +32,7 @@
         }
     
         #timeline {
-            background: #19181acc;
+            background: #19181aaa;
             bottom: 0px;
             height: 100px;
             left: 0px;
@@ -64,6 +64,14 @@
             stroke-width: 2px;
             z-index: 999;
         }
+
+        #timeline .overline {
+            fill: none;
+            opacity: 1;
+            stroke: #403e41;
+            stroke-width: 2px;
+            z-index: 9999;
+        }
     
         #timeline .tick text {
             fill: #ffd866;
@@ -84,7 +92,7 @@
         }
     
         #topbar {
-            background: #19181acc;
+            background: #19181aaa;
             font: 13px 'Fira Code', Helvetica, sans-serif;
             color: #ffd866; 
             left: 0px;
@@ -108,6 +116,8 @@
         #topbar .sep {
             padding-left: 5px; 
             padding-right: 5px;
+            color: #403e41;
+            font-weight: bold;
         }
 
         #topbar .data {
@@ -211,14 +221,14 @@
             <span class="sep">|</span>
             <span id="location"></span>
         </span>
-        <span class="right"><b>CovidMap</b></span>
+        <span class="right"><a href="about.html"><span class="about">About</a></span></span>
         <br/>
         <span class="cd"><span id="cd-title"></span>: <span id="cd-data">---</span></span>
         <span class="sep">|</span>
-        <span class="vr"><span id="vr-title"></span>: <span id="vr-data">-.--</span></span>
-        <span class="sep">|</span>
         <span class="nd"><span id="nd-title"></span>: <span id="nd-data">---</span></span>
-        <span class="right"><a href="about.html"><span class="about">About</span></a></span>
+        <span class="sep">|</span>
+        <span class="vr"><span id="vr-title"></span>: <span id="vr-data">-.--</span></span>
+        <span class="right"></span>
         
     </div>
     <div id="timeline"> </div>
@@ -410,15 +420,15 @@
         }
         
         if (selectedMean["nd"]) {
-            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"])
+            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"]).toString().padStart(4, '0')
         } else {
-            document.getElementById('nd-data').innerHTML = "---"
+            document.getElementById('nd-data').innerHTML = "----"
         }
 
         if (selectedMean["vr"]) {
             document.getElementById('vr-data').innerHTML = selectedMean["vr"].toFixed(2)
         } else {
-            document.getElementById('vr-data').innerHTML = "----"
+            document.getElementById('vr-data').innerHTML = "-.--"
         }
     };
 
@@ -440,6 +450,17 @@
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var clip = svg.append("defs")
+            .append("clipPath")
+            .attr("id", "rect-clip")
+        
+        var rect = clip.append("rect")
+            .attr("id", "my-rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", 0)
+            .attr("height", 0);
 
         var cddata = []
         var nddata = []
@@ -515,6 +536,12 @@
                 notice = true;
             }
 
+            console.log()
+            rect.attr("x", d3.event.selection[0])
+                .attr("y", window-innerHeight-100)
+                .attr("width", d3.event.selection[1]-d3.event.selection[0])
+                .attr("height", 100);
+
             if (d3.event.selection) {
                 selectedDates = d3.event.selection.map(x.invert, x)
             } else {
@@ -529,6 +556,8 @@
                 "vr": getmean(country["vr"]),
                 "nd": getmean(country["nd"])
             }
+
+            d3.select(".overline").style("clip", getcolor(selectedMean["cd"]))
 
             //d3.select(".selection").style("fill", getcolor(selectedMean["cd"]))
             topbar()
@@ -559,6 +588,25 @@
         svg.append("path")
             .data([nddata])
             .attr("class", "ndline")
+            .attr("d", line);
+
+        
+        svg.append("path")
+            .data([cddata])
+            .attr("class", "overline")
+            .attr("clip-path", "url(#rect-clip)")
+            .attr("d", line);
+        
+        svg.append("path")
+            .data([vrdata])
+            .attr("class", "overline")
+            .attr("clip-path", "url(#rect-clip)")
+            .attr("d", line);
+        
+        svg.append("path")
+            .data([nddata])
+            .attr("class", "overline")
+            .attr("clip-path", "url(#rect-clip)")
             .attr("d", line);
 
         svg.append("g")
