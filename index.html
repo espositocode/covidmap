@@ -44,7 +44,7 @@
         #timeline .cdline {
             fill: none;
             opacity: 1;
-            stroke: #fc9867;
+            stroke: #78dce8;
             stroke-width: 2px;
             z-index: 999;
         }
@@ -60,7 +60,7 @@
         #timeline .ndline {
             fill: none;
             opacity: 1;
-            stroke: #ff6188;
+            stroke: #a9dc76;
             stroke-width: 2px;
             z-index: 999;
         }
@@ -139,29 +139,6 @@
             padding-left: 10px;
             font-weight: bold;
         }
-
-        #meta {
-            background: #19181acc;
-            top: 27px;
-            font: 13px 'Fira Code', Helvetica, sans-serif;
-            color: #ffd866; 
-            left: 0px;
-            padding: 5px 10px 5px 10px;
-            position: absolute;
-            z-index: 998;
-        }
-
-        #meta .cd {
-            color: #fc9867
-        }
-
-        #meta .vr {
-            color: #ab9df2
-        }
-        
-        #meta .nd {
-            color: #ff6188
-        }
     
         .leaflet-container {
             background: #221f22;
@@ -170,8 +147,44 @@
         .leaflet-control-attribution {
             display: none;
         }
-    
+
+        .cd {
+            color: #78dce8;
+        }
+        
+        .nd {
+            color: #a9dc76;
+        }
+        
+        .vr {
+            color: #ab9df2;
+        }
+
+        #cd-title::before {
+            content: "Case Density";
+        }
+
+        #vr-title::before {
+            content: "Vaccination Ratio";
+        }
+   
+        #nd-title::before {
+            content: "New Deaths";
+        }
+
         @media only screen and (max-width: 768px) {
+            #cd-title::before {
+                content: "CD";
+            }
+
+            #nd-title::before {
+                content: "ND";
+            }
+
+            #vr-title::before {
+                content: "VR";
+            }
+
             #topbar {
                 font-size: 12px;
             }
@@ -183,7 +196,7 @@
                 width: auto;
             }
     
-            .place {
+            .location-wrapper {
                 display: none;
             }
         }
@@ -194,15 +207,17 @@
     <div id="topbar">
         <span id="date-begin"></span>
         <span id="date-end"></span>
-        <span class="sep">|</span>
-        <span id="location"></span>
+        <span class="location-wrapper">
+            <span class="sep">|</span>
+            <span id="location"></span>
+        </span>
         <span class="right"><b>CovidMap</b></span>
         <br/>
-        <span class="cd">Case Density: <span id="cd-data">---</span></span>
+        <span class="cd"><span id="cd-title"></span>: <span id="cd-data">---</span></span>
         <span class="sep">|</span>
-        <span class="vr">Vaccinated Ratio: <span id="vr-data">---</span></span>
+        <span class="vr"><span id="vr-title"></span>: <span id="vr-data">-.--</span></span>
         <span class="sep">|</span>
-        <span class="nd">New Deaths: <span id="nd-data">---</span></span>
+        <span class="nd"><span id="nd-title"></span>: <span id="nd-data">---</span></span>
         <span class="right"><a href="about.html"><span class="about">About</span></a></span>
         
     </div>
