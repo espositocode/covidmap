@@ -32,6 +32,7 @@
         }
     
         #timeline {
+            background: #19181acc;
             bottom: 0px;
             height: 100px;
             left: 0px;
@@ -40,16 +41,32 @@
             z-index: 999;
         }
     
-        #timeline .line {
+        #timeline .cdline {
             fill: none;
             opacity: 1;
-            stroke: #EFE09B;
+            stroke: #fc9867;
+            stroke-width: 2px;
+            z-index: 999;
+        }
+
+        #timeline .vrline {
+            fill: none;
+            opacity: 1;
+            stroke: #ab9df2;
+            stroke-width: 2px;
+            z-index: 999;
+        }
+
+        #timeline .ndline {
+            fill: none;
+            opacity: 1;
+            stroke: #ff6188;
             stroke-width: 2px;
             z-index: 999;
         }
     
         #timeline .tick text {
-            fill: #EFE09B;
+            fill: #ffd866;
             font-family: 'Fira Code', Helvetica, sans-serif;
             opacity: 0.5;
         }
@@ -59,7 +76,7 @@
         }
         
         #timeline .selection {
-            fill: #5b595c;
+            fill: #ffd866;
             fill-opacity: 1;
             opacity: 1;
             stroke: none;
@@ -67,9 +84,9 @@
         }
     
         #topbar {
-            background: #19181a99;
+            background: #19181acc;
             font: 13px 'Fira Code', Helvetica, sans-serif;
-            color: #EFE09B; 
+            color: #ffd866; 
             left: 0px;
             padding: 5px 10px 5px 10px;
             position: absolute;
@@ -79,7 +96,7 @@
         }
        
         #topbar .about {
-            color: #EFE09B;
+            color: #ffd866;
             text-decoration: underline;
             
         }
@@ -89,12 +106,16 @@
         }
     
         #topbar .sep {
-            padding-left: 10px; 
-            padding-right: 10px;
+            padding-left: 5px; 
+            padding-right: 5px;
+        }
+
+        #topbar .data {
+            display: inline-block;
         }
     
         #notice {
-            background: #EFE09B;
+            background: #ffd866;
             bottom: 100px;
             border-radius: 5px;
             border-color: #657b83aa;
@@ -117,6 +138,29 @@
             float: right;
             padding-left: 10px;
             font-weight: bold;
+        }
+
+        #meta {
+            background: #19181acc;
+            top: 27px;
+            font: 13px 'Fira Code', Helvetica, sans-serif;
+            color: #ffd866; 
+            left: 0px;
+            padding: 5px 10px 5px 10px;
+            position: absolute;
+            z-index: 998;
+        }
+
+        #meta .cd {
+            color: #fc9867
+        }
+
+        #meta .vr {
+            color: #ab9df2
+        }
+        
+        #meta .nd {
+            color: #ff6188
         }
     
         .leaflet-container {
@@ -147,8 +191,22 @@
 </head>
 <body>
     <div id="map"></div>
-    <div id="topbar">Loading..<span class="right"><a href="about.html"><span class="about">About</span></a></span></div>
-    <div id="timeline"></div>
+    <div id="topbar">
+        <span id="date-begin"></span>
+        <span id="date-end"></span>
+        <span class="sep">|</span>
+        <span id="location"></span>
+        <span class="right"><b>CovidMap</b></span>
+        <br/>
+        <span class="cd">Case Density: <span id="cd-data">---</span></span>
+        <span class="sep">|</span>
+        <span class="vr">Vaccinated Ratio: <span id="vr-data">---</span></span>
+        <span class="sep">|</span>
+        <span class="nd">New Deaths: <span id="nd-data">---</span></span>
+        <span class="right"><a href="about.html"><span class="about">About</span></a></span>
+        
+    </div>
+    <div id="timeline"> </div>
     <div id="notice">Drag the slider to show changes over time <span class="arrow">&darr;</span></div>
 </body>
 <script>
@@ -223,7 +281,8 @@
     var notice = false;
     var country = null;
     var geoLayer = null;
-    var countryCDMean = null;
+
+    var selectedMean = {}
     var selectedDates = null;
     var selectedRange = [-31, 0];
     
@@ -247,34 +306,34 @@
         return date;
     }
 
-    function getcolor(d) {
-        if (!d) {
+    function getcolor(cd) {
+        if (cd == null || isNaN(cd)) {
             return nullbg;
         }
 
-        return d > 250 ? colors[11] :
-               d > 175 ? colors[10] :
-               d > 100 ? colors[8] :
-               d > 85  ? colors[8] :
-               d > 75  ? colors[7] :
-               d > 60  ? colors[6] :
-               d > 50  ? colors[5] :
-               d > 40  ? colors[4] :
-               d > 30  ? colors[3] :
-               d > 20  ? colors[2] :
-               d > 10  ? colors[1] :
-                         colors[0];
+        return cd > 250 ? colors[11] :
+               cd > 175 ? colors[10] :
+               cd > 100 ? colors[8] :
+               cd > 85  ? colors[8] :
+               cd > 75  ? colors[7] :
+               cd > 60  ? colors[6] :
+               cd > 50  ? colors[5] :
+               cd > 40  ? colors[4] :
+               cd > 30  ? colors[3] :
+               cd > 20  ? colors[2] :
+               cd > 10  ? colors[1] :
+                          colors[0];
     }
 
-    function getmean(metrics) {
-        if (!selectedRange || !metrics) {
+    function getmean(data) {
+        if (!selectedRange || !data) {
             return null;
         }
 
         if (selectedRange[1] == 0) {
-            return Math.round(d3.mean(metrics.slice(selectedRange[0])));
+            return d3.mean(data.slice(selectedRange[0]));
         } else {
-            return Math.round(d3.mean(metrics.slice(selectedRange[0], selectedRange[1])));
+            return d3.mean(data.slice(selectedRange[0], selectedRange[1]));
         }
     }
 
@@ -301,7 +360,7 @@
         return {
             weight: .5, 
             color: "#EFE09B",
-            fillColor: getcolor(getmean(feature.properties["metrics"])),
+            fillColor: getcolor(getmean(feature.properties["cd"])),
             opacity: .05,
             fillOpacity: 1
         };
@@ -320,31 +379,32 @@
             return;
         }
 
-        content = '<span class="range">' + selectedDates[0].toISOString().split('T')[0] + ' - ' + selectedDates[1].toISOString().split('T')[0] + '</span><span class="place"><span class="sep">|</span>'
+        document.getElementById('date-begin').innerHTML = selectedDates[0].toISOString().split('T')[0] 
+        document.getElementById('date-end').innerHTML = selectedDates[1].toISOString().split('T')[0]
 
         if (county) {
-            content = content + county.name + ", " + fips[county.state]
+            document.getElementById('location').innerHTML = county.name + ", " + fips[county.state]
         } else {
-            content = content + "United States"
+            document.getElementById('location').innerHTML = "United States"
         }
 
-        var cd = null;
-        if (county) {
-            if (county["metrics"]) {
-                cd = getmean(county["metrics"])
-            }
+        if (selectedMean["cd"]) {
+            document.getElementById('cd-data').innerHTML = Math.round(selectedMean["cd"]).toString().padStart(3, '0')
         } else {
-            cd = countryCDMean
+            document.getElementById('cd-data').innerHTML = "---"
+        }
+        
+        if (selectedMean["nd"]) {
+            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"])
+        } else {
+            document.getElementById('nd-data').innerHTML = "---"
         }
 
-        if (cd == null || isNaN(cd)) {
-            cd = "---"
+        if (selectedMean["vr"]) {
+            document.getElementById('vr-data').innerHTML = selectedMean["vr"].toFixed(2)
         } else {
-            cd = cd.toString().padStart(3, "0")
+            document.getElementById('vr-data').innerHTML = "----"
         }
-
-        content = content + '</span><span class="right">Case Density: ' + cd + '<span class="sep">|</span><a href="about.html"><span class="about">About</span></a></span>'
-        document.getElementById('topbar').innerHTML = content
     };
 
     function timeline() {
@@ -355,10 +415,10 @@
         var x = d3.scaleTime().range([0, width]);
         var y = d3.scaleLinear().range([height, 0]);
 
-        var valueline = d3.line()
+        var line = d3.line()
             .x(function (d) { return x(d.date); })
-            .y(function (d) { return y(d.case); });
-
+            .y(function (d) { return y(d.data); });
+        
         var svg = d3.select("#timeline").append("svg")
             .attr("class", "country")
             .attr("width", width + margin.left + margin.right)
@@ -366,30 +426,72 @@
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var data = []
-        var length = country["metrics"].length;
-        for (idx = 0; idx < length; idx++) {
-            data.push(
+        var cddata = []
+        var nddata = []
+        var vrdata = []
+
+        var cdmax = Math.max(...country["cd"])
+        var end = true;
+        for (idx = country["cd"].length-1; idx >= 0; idx--) {
+            if (end == true && country["cd"][idx] == null) {
+                continue
+            } else {
+                end = false;
+            }
+            cddata.push(
                 {
-                    "case": country["metrics"][idx],
-                    "date": datedays(length - idx)
+                    "data": country["cd"][idx]/cdmax,
+                    "date": datedays(country["cd"].length - idx)
                 }
             )
         };
 
-        x.domain(d3.extent(data, function (d) {
+        var ndmax = Math.max(...country["nd"])
+        var end = true;
+        for (idx = country["nd"].length-1; idx >= 0; idx--) {
+            if (end == true && country["nd"][idx] == null) {
+                continue
+            } else {
+                end = false;
+            }
+            nddata.push(
+                {
+                    "data": country["nd"][idx]/ndmax,
+                    "date": datedays(country["nd"].length - idx)
+                }
+            )
+        };
+
+        var end = true;
+        for (idx = country["vr"].length-1; idx >= 0; idx--) {
+            if (end == true && country["vr"][idx] == null) {
+                continue
+            } else {
+                end = false;
+            }
+            vrdata.push(
+                {
+                    "data": country["vr"][idx],
+                    "date": datedays(country["vr"].length - idx)
+                }
+            )
+        };
+
+        x.domain(d3.extent(cddata, function (d) {
             return d.date;
         }));
 
-        y.domain([0, d3.max(data, function (d) {
-            return Math.max(d.case) + 50;
+        y.domain([0, d3.max(cddata, function (d) {
+            return 1;
         })]);
 
         var defaultSelection = null;
         if (window.innerWidth > 768) {
             defaultSelection = [x(d3.utcMonth.offset(x.domain()[1], -1)), x.range()[1]];
-        } else {
+        } else if (window.innerWidth > 428) {
             defaultSelection = [x(d3.utcMonth.offset(x.domain()[1], -2)), x.range()[1]];
+        } else {
+            defaultSelection = [x(d3.utcMonth.offset(x.domain()[1], -3)), x.range()[1]];
         }
 
         function brushed(d) {
@@ -406,9 +508,14 @@
             }
 
             selectedRange = [datediff(today, selectedDates[0]), datediff(today, selectedDates[1])]
-            countryCDMean = getmean(country["metrics"])
 
-            d3.select(".selection").style("fill", getcolor(countryCDMean))
+            selectedMean = {
+                "cd": getmean(country["cd"]),
+                "vr": getmean(country["vr"]),
+                "nd": getmean(country["nd"])
+            }
+
+            //d3.select(".selection").style("fill", getcolor(selectedMean["cd"]))
             topbar()
             if (geoLayer) {
                 geoLayer.resetStyle()
@@ -425,9 +532,19 @@
             .call(brush.move, defaultSelection);
 
         svg.append("path")
-            .data([data])
-            .attr("class", "line")
-            .attr("d", valueline);
+            .data([cddata])
+            .attr("class", "cdline")
+            .attr("d", line);
+        
+        svg.append("path")
+            .data([vrdata])
+            .attr("class", "vrline")
+            .attr("d", line);
+        
+        svg.append("path")
+            .data([nddata])
+            .attr("class", "ndline")
+            .attr("d", line);
 
         svg.append("g")
             .attr("class", "axis")
@@ -441,7 +558,7 @@
 
     function resize() {
         d3.select(".country").remove();
-        timeline(country["metrics"])
+        timeline()
     }
 
     d3.json('/data/county.geo.json', function (data) {

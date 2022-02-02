@@ -1,54 +1,67 @@
 import json
 import requests
-
-states = ["AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"]
+import statistics
 
 COUNTRY_URL = 'https://api.covidactnow.org/v2/country/US.timeseries.json?apiKey=3e298e6f4f944fd2ab9d5a88e6d09ea8'
-COUNTY_URL = 'https://api.covidactnow.org/v2/county/{state}.timeseries.json?apiKey=3e298e6f4f944fd2ab9d5a88e6d09ea8'
+COUNTIES_URL = 'https://api.covidactnow.org/v2/counties.timeseries.json?apiKey=3e298e6f4f944fd2ab9d5a88e6d09ea8'
 
-def get_country_data():
+def get_country():
     print(f"Downloading country")
     r = requests.get(COUNTRY_URL)
     country = r.json()
 
-    data = {
-        "metrics": [entry["caseDensity"] for entry in country['metricsTimeseries']]
-    }
+    data = {}
+   
+    data["cd"] = []
+    begin = True
+    for entry in country["metricsTimeseries"]:
+        if begin and entry.get("caseDensity") == None:
+            continue
+        else:
+            begin = False
+        data["cd"].append(entry.get("caseDensity"))
+
+    data["vr"] = []
+    begin = True 
+    for entry in country["metricsTimeseries"]:
+        if begin and entry.get("vaccinationsCompletedRatio") == None:
+            continue
+        else:
+            begin = False
+        data["vr"].append(entry.get("vaccinationsCompletedRatio"))
+
+    data["nd"] = []
+    begin = True
+    history = 7
+    for idx, entry in enumerate(country["actualsTimeseries"]):
+        if begin and entry.get("newDeaths") == None:
+            continue
+        else:
+            begin = False
+        week = [actuals["newDeaths"] if actuals.get("newDeaths") else 0 for actuals in country["actualsTimeseries"][idx-history if idx > history else 0:idx+1]]
+        data["nd"].append(statistics.mean(week))
 
     with open('data/country.json', 'w') as f:
         f.write(json.dumps(data))
 
-def get_county_data():
+def get_counties():
     with open("resources/geo.json", "r") as f:
         data = json.loads(f.read())
-
-    # {
-    #     "testPositivityRatio": 0.032, 
-    #     "caseDensity": 22.9, 
-    #     "contactTracerCapacityRatio": null, 
-    #     "infectionRate": 0.78, 
-    #     "infectionRateCI90": 0.77, 
-    #     "icuCapacityRatio": null, 
-    #     "vaccinationsInitiatedRatio": 0.393, 
-    #     "vaccinationsCompletedRatio": 0.343, 
-    #     "vaccinationsAdditionalDoseRatio": null, 
-    #     "date": "2021-11-25"
-    #  }
-
-    for state in states:
-        print(f"Downloading {state}".format(state=state))
-        r = requests.get(COUNTY_URL.format(state=state))
-        counties = r.json()
-        for county in counties:
-            for feature in data["features"]:
-                if feature['properties']['fips'] == county['fips']:
-                    break
-            else:
-                print(f"Error: could not find {county['fips']}")
-            feature["properties"]["metrics"] = [entry["caseDensity"] for entry in county['metricsTimeseries']]
+        
+    print(f"Downloading counties")
+    r = requests.get(COUNTIES_URL)
+    counties = r.json()
+    for county in counties:
+        # print(county)
+        for feature in data["features"]:
+            if feature['properties']['fips'] == county['fips']:
+                break
+        else:
+            print(f"Error: could not find {county['fips']}")
+        feature["properties"]["cd"] = [round(entry["caseDensity"]) if entry.get("caseDensity") != None else None for entry in county['metricsTimeseries']]
 
     with open("data/county.geo.json", "w") as f:
         f.write(json.dumps(data))
 
-get_country_data()
-get_county_data()
+get_country()
+# get_counties()
