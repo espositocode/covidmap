@@ -73,10 +73,17 @@
             z-index: 9999;
         }
     
-        #timeline .tick text {
+        #timeline .underaxis .tick text {
             fill: #ffd866;
             font-family: 'Fira Code', Helvetica, sans-serif;
-            opacity: 0.5;
+            opacity: 1;
+        }
+
+        #timeline .overaxis .tick text {
+            fill: #000;
+            font-family: 'Fira Code', Helvetica, sans-serif;
+            opacity: 1;
+            z-index: 99999999;
         }
     
         #timeline .tick line {
@@ -422,7 +429,7 @@
         if (selectedMean["nd"]) {
             document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"]).toString().padStart(4, '0')
         } else {
-            document.getElementById('nd-data').innerHTML = "----"
+            document.getElementById('nd-data').innerHTML = "---&nbsp;"
         }
 
         if (selectedMean["vr"]) {
@@ -460,7 +467,7 @@
             .attr("x", 0)
             .attr("y", 0)
             .attr("width", 0)
-            .attr("height", 0);
+            .attr("height", 100);
 
         var cddata = []
         var nddata = []
@@ -538,9 +545,8 @@
 
             console.log()
             rect.attr("x", d3.event.selection[0])
-                .attr("y", window-innerHeight-100)
-                .attr("width", d3.event.selection[1]-d3.event.selection[0])
-                .attr("height", 100);
+                .attr("y", 0)
+                .attr("width", d3.event.selection[1]-d3.event.selection[0]);
 
             if (d3.event.selection) {
                 selectedDates = d3.event.selection.map(x.invert, x)
@@ -590,7 +596,6 @@
             .attr("class", "ndline")
             .attr("d", line);
 
-        
         svg.append("path")
             .data([cddata])
             .attr("class", "overline")
@@ -610,9 +615,17 @@
             .attr("d", line);
 
         svg.append("g")
-            .attr("class", "axis")
+            .attr("class", "axis underaxis")
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisTop(x));
+
+        /*
+        svg.append("g")
+            .attr("class", "axis overaxis")
+            .attr("clip-path", "url(#rect-clip)")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisTop(x));
+        */
 
         document.getElementById('notice').style.display = 'block';
         notice = true;
