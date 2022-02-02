@@ -64,4 +64,4 @@ def get_counties():
         f.write(json.dumps(data))
 
 get_country()
-# get_counties()
+get_counties()
