@@ -40,29 +40,24 @@
             right: 0px;
             z-index: 999;
         }
-    
-        #timeline .cdline {
+
+        #timeline .line {
             fill: none;
             opacity: 1;
-            stroke: #78dce8;
             stroke-width: 2px;
-            z-index: 999;
+            z-index: 2;
+        }
+    
+        #timeline .cdline {
+            stroke: #78dce8;
         }
 
         #timeline .vrline {
-            fill: none;
-            opacity: 1;
             stroke: #ab9df2;
-            stroke-width: 2px;
-            z-index: 999;
         }
 
         #timeline .ndline {
-            fill: none;
-            opacity: 1;
             stroke: #a9dc76;
-            stroke-width: 2px;
-            z-index: 999;
         }
 
         #timeline .overline {
@@ -72,18 +67,12 @@
             stroke-width: 2px;
             z-index: 9999;
         }
-    
-        #timeline .underaxis .tick text {
-            fill: #ffd866;
+   
+        #timeline .tick text {
+            fill: #727072;
             font-family: 'Fira Code', Helvetica, sans-serif;
             opacity: 1;
-        }
-
-        #timeline .overaxis .tick text {
-            fill: #000;
-            font-family: 'Fira Code', Helvetica, sans-serif;
-            opacity: 1;
-            z-index: 99999999;
+            z-index: 1;
         }
     
         #timeline .tick line {
@@ -421,21 +410,21 @@
         }
 
         if (selectedMean["cd"]) {
-            document.getElementById('cd-data').innerHTML = Math.round(selectedMean["cd"]).toString().padStart(3, '0')
+            document.getElementById('cd-data').innerHTML = Math.round(selectedMean["cd"])
         } else {
-            document.getElementById('cd-data').innerHTML = "---"
+            document.getElementById('cd-data').innerHTML = "-"
         }
         
         if (selectedMean["nd"]) {
-            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"]).toString().padStart(4, '0')
+            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"])
         } else {
-            document.getElementById('nd-data').innerHTML = "---&nbsp;"
+            document.getElementById('nd-data').innerHTML = "-"
         }
 
         if (selectedMean["vr"]) {
             document.getElementById('vr-data').innerHTML = selectedMean["vr"].toFixed(2)
         } else {
-            document.getElementById('vr-data').innerHTML = "-.--"
+            document.getElementById('vr-data').innerHTML = "-"
         }
     };
 
@@ -524,9 +513,7 @@
             return d.date;
         }));
 
-        y.domain([0, d3.max(cddata, function (d) {
-            return 1;
-        })]);
+        y.domain([-.2, 1.1])
 
         var defaultSelection = null;
         if (window.innerWidth > 768) {
@@ -583,17 +570,17 @@
 
         svg.append("path")
             .data([cddata])
-            .attr("class", "cdline")
+            .attr("class", "line cdline")
             .attr("d", line);
         
         svg.append("path")
             .data([vrdata])
-            .attr("class", "vrline")
+            .attr("class", "line vrline")
             .attr("d", line);
         
         svg.append("path")
             .data([nddata])
-            .attr("class", "ndline")
+            .attr("class", "line ndline")
             .attr("d", line);
 
         svg.append("path")
@@ -616,7 +603,7 @@
 
         svg.append("g")
             .attr("class", "axis underaxis")
-            .attr("transform", "translate(0," + height + ")")
+            .attr("transform", "translate(0," + 105 + ")")
             .call(d3.axisTop(x));
 
         /*
