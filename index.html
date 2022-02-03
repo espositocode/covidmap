@@ -22,14 +22,24 @@
             width: 100%;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
+            font-family: 'Fira Code', Helvetica, sans-serif;
+            color: #c1c0c0;
+            font-size: 13px;
         }
 
         a {
             color: inherit;
         }
 
-        hr {
-            border-color: #19181a;
+        .divider {
+            width: 100%;
+            height: 1px;
+            border-style: solid;
+            border-color: #403e41;
+            border-width: 2px 0px 0px 0px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: block;
         }
 
         .right {
@@ -91,12 +101,12 @@
             stroke: #ffd866;
         }
 
-        #timeline .vrline {
-            stroke: #c1c0c0;
+        #timeline .vcrline {
+            stroke: #403e41;
         }
 
         #timeline .ndline {
-            stroke: #c1c0c0;
+            stroke: #403e41;
         }
 
         #timeline .overline {
@@ -132,6 +142,8 @@
             right: 0px;
             top: 0px;
             z-index: 999;
+            height: 45px;
+            line-height: 20px;
         }
         
         #topbar .sep {
@@ -143,6 +155,22 @@
 
         #topbar .data {
             display: inline-block;
+        }
+
+        #data {
+            display: none;
+            position: absolute;
+            bottom: 100px;
+            left: 0px;
+            width: 200px;
+            background: #19181aaa;
+            padding: 5px 10px 5px 10px;
+            overflow-y: scroll;
+            top: 55px;
+            z-index: 999;
+            border-color: #fff;
+            border-style: solid;
+            border-width: 0px 0px 0px 0px;
         }
     
         .leaflet-container {
@@ -176,8 +204,8 @@
             content: "Case Density";
         }
 
-        #vr-title::before {
-            content: "Vaccination Ratio";
+        #vcr-title::before {
+            content: "Vaccinations Completed Ratio";
         }
    
         #nd-title::before {
@@ -197,8 +225,8 @@
                 content: "ND";
             }
 
-            #vr-title::before {
-                content: "VR";
+            #vcr-title::before {
+                content: "VCR";
             }
 
             #topbar {
@@ -236,9 +264,10 @@
         <span class="sep">|</span>
         <span id="nd"><a onmouseout="sourceout('nd')" onmouseover="sourceover('nd')" href="javascript:selectsource('nd')"><span id="nd-title"></span>: <span id="nd-data">-</span></a></span>
         <span class="sep">|</span>
-        <span id="vr"><a onmouseout="sourceout('vr')" onmouseover="sourceover('vr')" href="javascript:selectsource('vr')"><span id="vr-title"></span>: <span id="vr-data">-</span></a></span>
+        <span id="vcr"><a onmouseout="sourceout('vcr')" onmouseover="sourceover('vcr')" href="javascript:selectsource('vcr')"><span id="vcr-title"></span>: <span id="vcr-data">-</span></a></span>
     </div>
-    <div id="timeline"> </div>
+    <div id="data"></div>
+    <div id="timeline"></div>
     <div id="notice">Drag the slider to show changes over time <span class="arrow">&darr;</span></div>
 </body>
 <script>
@@ -315,17 +344,20 @@
         "cd": {
             "title": "Case Density",
             "url": "/data/covidactnow/counties.cd.json",
-            "format": "int"
+            "format": "int",
+            "adjust": true
         },
         "nd": {
             "title": "New Deaths",
             "url": "/data/covidactnow/counties.nd.json",
-            "format": "int"
+            "format": "int",
+            "adjust": true
         },
-        "vr": {
-            "title": "Vaccine Ratio",
-            "url": "/data/covidactnow/counties.vr.json",
-            "format": "dec"
+        "vcr": {
+            "title": "Vaccinations Completed Ratio",
+            "url": "/data/covidactnow/counties.vcr.json",
+            "format": "dec",
+            "adjust": false
         }
     } 
 
@@ -450,7 +482,7 @@
             return;
         }
 
-        content = "<b>" + mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state] + "</b><br>"
+        content = "" + mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state] + "<br>"
         if (source == "cd") {
             content = content + "Case Density: "
             var value = Math.round(getmean(mapTargetSelected.feature.properties["data"]))
@@ -467,8 +499,8 @@
             } else {
                 content = content + "-"
             }
-        } else if (source == "vr") {
-            content = content + "Vaccinated Ratio: "
+        } else if (source == "vcr") {
+            content = content + "Vaccinations Completed Ratio: "
             var value = getmean(mapTargetSelected.feature.properties["data"])
             if (value) {
                 content = content + value.toFixed(2)
@@ -477,7 +509,7 @@
             }
         }
 
-        content = content + "<br/><hr/>"
+        content = content + "<br/><div class='divider'></div>"
 
         if (selectedRange) {
             var filtered = null;
@@ -495,24 +527,21 @@
                     var value = "-"
                 }
                 
-                content = content + d.toISOString().split('T')[0] + ": " + value + "<br/>"
+                content = content + d.toISOString().split('T')[0] + "<span class='right'>" + value + "</span><br/>"
                 d.setDate(d.getDate() + 1);
             }
         }
-        popup.setContent(content)
-        popup.update()
+        document.getElementById('data').innerHTML = content
     }
 
     function onMapClick(e) {
         if (!mapTargetHovered) {
+            document.getElementById('data').style.display = "none"; 
             return;
         }
+        document.getElementById('data').style.display = "block"; 
         mapTargetSelected = mapTargetHovered
         updatePopup()
-
-        popup
-            .setLatLng(e.latlng)
-            .openOn(map);
     }
 
     function topbar(county) {
@@ -584,10 +613,16 @@
                 } else {
                     end = false;
                 }
+
+                var datay = country[key][idx];
+                if (sources[key].adjust) {
+                    datay = country[key][idx]/sources[key].timeline.max
+                }
+                 
                 sources[key].timeline.data.push(
                     {
-                        "y": country[key][idx]/sources[key].timeline.max,
-                        "x": datedays(country[key].length - idx)
+                        "x": datedays(country[key].length - idx),
+                        "y": datay
                     }
                 )
             };
@@ -634,6 +669,7 @@
             }
 
             topbar()
+            updatePopup()
             if (geoLayer) {
                 geoLayer.resetStyle()
             }
@@ -661,6 +697,12 @@
                 .attr("d", line);
         }
 
+        for (key in sources) {
+            d3.select("." + key + "line").raise()
+            break
+        }
+        d3.selectAll(".overline").raise()
+
         svg.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(0," + (height+1) + ")")
@@ -681,9 +723,15 @@
 
         for (k in sources) {
             if (k == key) {
-                d3.select('.' + k + 'line').style("stroke",'#ffd866') 
+                d3.select('.' + k + 'line')
+                    .style("stroke",'#ffd866')
+                    //.style("stroke-width",'3')
+                    .raise()
+                d3.selectAll('.overline').raise()
             } else {
-                d3.select('.' + k + 'line').style("stroke",'#c1c0c0')
+                d3.select('.' + k + 'line')
+                    //.style("stroke-width",'2')
+                    .style("stroke",'#403e41')
             }
         }
     }
@@ -697,9 +745,15 @@
 
         for (k in sources) {
             if (k == source) {
-                d3.select('.' + k + 'line').style("stroke",'#ffd866') 
+                d3.select('.' + k + 'line')
+                    .style("stroke",'#ffd866') 
+                    //.style("stroke-width",'2')
+                    .raise()
+                d3.selectAll('.overline').raise()
             } else {
-                d3.select('.' + k + 'line').style("stroke",'#c1c0c0')
+                d3.select('.' + k + 'line')
+                    //.style("stroke-width",'2')
+                    .style("stroke",'#403e41')
             }
         }
     }

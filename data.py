@@ -25,8 +25,8 @@ def get_country():
 
     data = {
         "cd": [value for value in gather(country["metricsTimeseries"], "caseDensity")],
-        "vr": [value for value in gather(country["metricsTimeseries"], "vaccinationsCompletedRatio")],
-        "nd": [value for value in gather(country["actualsTimeseries"], "newDeaths", average=7)]
+        "vcr": [value for value in gather(country["metricsTimeseries"], "vaccinationsCompletedRatio")],
+        "nd": [value for value in gather(country["actualsTimeseries"], "newDeaths")]
     }
 
     with open('data/covidactnow/country.json', 'w') as f:
@@ -53,17 +53,17 @@ def get_counties():
     for county in counties:
         data[county["fips"]] = {
             "max": 1,
-            "vr": [value for value in gather(county["metricsTimeseries"], "vaccinationsCompletedRatio")]
+            "vcr": [value for value in gather(county["metricsTimeseries"], "vaccinationsCompletedRatio")]
         }
 
-    with open("data/covidactnow/counties.vr.json", "w") as f:
+    with open("data/covidactnow/counties.vcr.json", "w") as f:
         f.write(json.dumps(data))
 
     # build actualsTimeseries/newDeaths
     data = {}
     for county in counties:
         data[county["fips"]] = {
-            "nd": [value for value in gather(county["actualsTimeseries"], "newDeaths", average=7)]
+            "nd": [value for value in gather(county["actualsTimeseries"], "newDeaths")]
         }
 
     with open("data/covidactnow/counties.nd.json", "w") as f:
