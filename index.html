@@ -208,7 +208,7 @@
                 width: auto;
             }
 
-            .location-wrapper {
+            #location-wrapper {
                 display: none;
             }
         }
@@ -217,9 +217,12 @@
 <body>
     <div id="map"></div>
     <div id="topbar">
-        <span id="date-begin">Loading..</span> -
-        <span id="date-end"></span>
-        <span class="location-wrapper">
+        <span id="loading-wrapper">Loading..</span>
+        <span id="date-wrapper">
+            <span id="date-begin"></span> -
+            <span id="date-end"></span>
+        </span>
+        <span id="location-wrapper">
             <span class="sep">|</span>
             <span id="location">United States</span>
         </span>
@@ -787,6 +790,9 @@
         geoLayer = L.geoJson(data, { style: style, onEachFeature: onEachFeature, smoothFactor: .5 }).addTo(map);
         load("cd")
         topbar()
+
+        document.getElementById("loading-wrapper").style.display = "none";
+        document.getElementById("date-wrapper").style.display = "inline-block";
     });
 
     d3.json('/data/covidactnow/country.json', function (data) {
