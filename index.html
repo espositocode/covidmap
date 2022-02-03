@@ -28,6 +28,10 @@
             color: inherit;
         }
 
+        hr {
+            border-color: #19181a;
+        }
+
         .right {
             float: right;
         }
@@ -158,6 +162,14 @@
             max-height: 120px;
             overflow-y: scroll;
             font: 13px 'Fira Code', Helvetica, sans-serif;
+        }
+
+        .leaflet-container a.leaflet-popup-close-button {
+            color: #19181a; 
+        }
+
+        .leaflet-container a.leaflet-popup-close-button:hover {
+            color: #403e41; 
         }
 
         #cd-title::before {
@@ -302,40 +314,47 @@
     var sources = {
         "cd": {
             "title": "Case Density",
-            "url": "/data/covidactnow/counties.cd.json"
+            "url": "/data/covidactnow/counties.cd.json",
+            "format": "int"
         },
         "nd": {
             "title": "New Deaths",
-            "url": "/data/covidactnow/counties.nd.json"
+            "url": "/data/covidactnow/counties.nd.json",
+            "format": "int"
         },
         "vr": {
             "title": "Vaccine Ratio",
-            "url": "/data/covidactnow/counties.vr.json"
+            "url": "/data/covidactnow/counties.vr.json",
+            "format": "dec"
         }
     } 
+
+    // added:
+    // - timeline
+    // - mean
 
     var country = null;
     var geoLayer = null;
 
-    var selectedMean = {}
     var selectedDates = null;
     var selectedRange = [-31, 0];
 
     var notice = false;
-    var mapTarget = null;
+    var mapTargetHovered = null;
+    var mapTargetSelected = null;
 
     var map = L.map('map', {zoomControl: false}).setView([37, -95], 4)
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    /*L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         attribution: '', 
         maxZoom: 18,
         id: 'espositocode/ckz3j0244000514qk2q3zwu6y',
         tileSize: 512,
         zoomOffset: -1,
         accessToken: 'pk.eyJ1IjoiZXNwb3NpdG9jb2RlIiwiYSI6ImNreXlqaWFiZzA5cWUybnJtdXhheXh2bXQifQ.WgKbAeSzL4uYV1PlIzjMIw'
-    }).addTo(map);
+    }).addTo(map);*/
 
     var popup = L.popup();
-    //map.on('click', onMapClick);
+    map.on('click', onMapClick);
 
     function datediff(first, second) {
         return Math.round((second - first) / (1000 * 60 * 60 * 24));
@@ -379,7 +398,7 @@
     }
 
     function mouseover(e) {
-        mapTarget = e.target;
+        mapTargetHovered = e.target;
         e.target.setStyle({
             color: "#fff",
             weight: 2,
@@ -394,6 +413,7 @@
     }
 
     function mouseout(e) {
+        mapTargetHovered = null;
         geoLayer.resetStyle(e.target);
         topbar();
     }
@@ -425,11 +445,15 @@
         });
     }
 
-    function onMapClick(e) {
-        content = "<b>" + mapTarget.feature.properties.name + ", " + fips[mapTarget.feature.properties.state] + "</b><br>"
+    function updatePopup() {
+        if (!mapTargetSelected) {
+            return;
+        }
+
+        content = "<b>" + mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state] + "</b><br>"
         if (source == "cd") {
             content = content + "Case Density: "
-            var value = Math.round(getmean(mapTarget.feature.properties["data"]))
+            var value = Math.round(getmean(mapTargetSelected.feature.properties["data"]))
             if (value) {
                 content = content + value
             } else {
@@ -437,7 +461,7 @@
             }
         } else if (source == "nd") {
             content = content + "New Deaths: "
-            var value = Math.round(getmean(mapTarget.feature.properties["data"]))
+            var value = Math.round(getmean(mapTargetSelected.feature.properties["data"]))
             if (value) {
                 content = content + value
             } else {
@@ -445,7 +469,7 @@
             }
         } else if (source == "vr") {
             content = content + "Vaccinated Ratio: "
-            var value = getmean(mapTarget.feature.properties["data"])
+            var value = getmean(mapTargetSelected.feature.properties["data"])
             if (value) {
                 content = content + value.toFixed(2)
             } else {
@@ -453,14 +477,14 @@
             }
         }
 
-        content = content + "<br/>"
+        content = content + "<br/><hr/>"
 
         if (selectedRange) {
             var filtered = null;
             if (selectedRange[1] == 0) {
-                filtered = mapTarget.feature.properties["data"].slice(selectedRange[0]);
+                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0]);
             } else {
-                filtered = mapTarget.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
+                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
             }
 
             d = new Date(selectedDates[0].getTime())
@@ -475,10 +499,19 @@
                 d.setDate(d.getDate() + 1);
             }
         }
+        popup.setContent(content)
+        popup.update()
+    }
+
+    function onMapClick(e) {
+        if (!mapTargetHovered) {
+            return;
+        }
+        mapTargetSelected = mapTargetHovered
+        updatePopup()
 
         popup
             .setLatLng(e.latlng)
-            .setContent(content)
             .openOn(map);
     }
 
@@ -497,22 +530,16 @@
             document.getElementById('location').innerHTML = "United States"
         }
 
-        if (selectedMean["cd"]) {
-            document.getElementById('cd-data').innerHTML = Math.round(selectedMean["cd"])
-        } else {
-            document.getElementById('cd-data').innerHTML = "-"
-        }
-        
-        if (selectedMean["nd"]) {
-            document.getElementById('nd-data').innerHTML = Math.round(selectedMean["nd"])
-        } else {
-            document.getElementById('nd-data').innerHTML = "-"
-        }
-
-        if (selectedMean["vr"]) {
-            document.getElementById('vr-data').innerHTML = selectedMean["vr"].toFixed(2)
-        } else {
-            document.getElementById('vr-data').innerHTML = "-"
+        for (key in sources) {
+            var value = "-"
+            if (sources[key].mean) {
+                if (sources[key]["format"] == "int") {
+                    value = Math.round(sources[key].mean)
+                } else if (sources[key]["format"] == "dec") {
+                    value = sources[key].mean.toFixed(2)
+                }
+            }
+            document.getElementById(key + '-data').innerHTML = value
         }
     };
 
@@ -525,8 +552,8 @@
         var y = d3.scaleLinear().range([height, 0]);
 
         var line = d3.line()
-            .x(function (d) { return x(d.date); })
-            .y(function (d) { return y(d.data); });
+            .x(function (d) { return x(d.x); })
+            .y(function (d) { return y(d.y); });
         
         var svg = d3.select("#timeline").append("svg")
             .attr("class", "country")
@@ -546,61 +573,34 @@
             .attr("width", 0)
             .attr("height", 100);
 
-        var cddata = []
-        var nddata = []
-        var vrdata = []
-
-        var cdmax = Math.max(...country["cd"])
-        var end = true;
-        for (idx = country["cd"].length-1; idx >= 0; idx--) {
-            if (end == true && country["cd"][idx] == null) {
-                continue
-            } else {
-                end = false;
-            }
-            cddata.push(
-                {
-                    "data": country["cd"][idx]/cdmax,
-                    "date": datedays(country["cd"].length - idx)
+        for (key in sources) {
+            sources[key].timeline = { }
+            sources[key].timeline.max = Math.max(...country[key])
+            sources[key].timeline.data = []
+            var end = true;
+            for (idx = country[key].length-1; idx >= 0; idx--) {
+                if (end == true && country[key][idx] == null) {
+                    continue
+                } else {
+                    end = false;
                 }
-            )
-        };
+                sources[key].timeline.data.push(
+                    {
+                        "y": country[key][idx]/sources[key].timeline.max,
+                        "x": datedays(country[key].length - idx)
+                    }
+                )
+            };
+        }
 
-        var ndmax = Math.max(...country["nd"])
-        var end = true;
-        for (idx = country["nd"].length-1; idx >= 0; idx--) {
-            if (end == true && country["nd"][idx] == null) {
-                continue
-            } else {
-                end = false;
-            }
-            nddata.push(
-                {
-                    "data": country["nd"][idx]/ndmax,
-                    "date": datedays(country["nd"].length - idx)
-                }
-            )
-        };
-
-        var end = true;
-        for (idx = country["vr"].length-1; idx >= 0; idx--) {
-            if (end == true && country["vr"][idx] == null) {
-                continue
-            } else {
-                end = false;
-            }
-            vrdata.push(
-                {
-                    "data": country["vr"][idx],
-                    "date": datedays(country["vr"].length - idx)
-                }
-            )
-        };
-
-        x.domain(d3.extent(cddata, function (d) {
-            return d.date;
-        }));
-
+        var extents = []
+        for (key in sources) {
+            extents = extents.concat(d3.extent(sources[key]["timeline"]["data"], function (d) {
+                return d.x;
+            }))
+        }
+        
+        x.domain(d3.extent(extents));
         y.domain([-.35, 1.1])
 
         var defaultSelection = null;
@@ -624,10 +624,8 @@
             selectedDates = d3.event.selection.map(x.invert, x)
             selectedRange = [datediff(today, selectedDates[0]), datediff(today, selectedDates[1])]
 
-            selectedMean = {
-                "cd": getmean(country["cd"]),
-                "vr": getmean(country["vr"]),
-                "nd": getmean(country["nd"])
+            for (key in sources) {
+                sources[key]["mean"] = getmean(country[key])
             }
 
             if (notice) {
@@ -650,38 +648,18 @@
             .call(brush)
             .call(brush.move, defaultSelection);
 
-        svg.append("path")
-            .data([cddata])
-            .attr("class", "line cdline")
-            .attr("d", line);
-        
-        svg.append("path")
-            .data([vrdata])
-            .attr("class", "line vrline")
-            .attr("d", line);
-        
-        svg.append("path")
-            .data([nddata])
-            .attr("class", "line ndline")
-            .attr("d", line);
-
-        svg.append("path")
-            .data([cddata])
-            .attr("class", "line overline")
-            .attr("clip-path", "url(#rect-clip)")
-            .attr("d", line);
-        
-        svg.append("path")
-            .data([vrdata])
-            .attr("class", "line overline")
-            .attr("clip-path", "url(#rect-clip)")
-            .attr("d", line);
-        
-        svg.append("path")
-            .data([nddata])
-            .attr("class", "line overline")
-            .attr("clip-path", "url(#rect-clip)")
-            .attr("d", line);
+        for (key in sources) {
+            svg.append("path")
+                .data([sources[key]["timeline"]["data"]])
+                .attr("class", "line " + key + "line")
+                .attr("d", line);
+            
+            svg.append("path")
+                .data([sources[key]["timeline"]["data"]])
+                .attr("class", "line overline")
+                .attr("clip-path", "url(#rect-clip)")
+                .attr("d", line);
+        }
 
         svg.append("g")
             .attr("class", "axis")
@@ -747,12 +725,16 @@
                 }
             });
             geoLayer.resetStyle()
+            updatePopup()
         });
     }
 
     d3.json('/resources/counties.geo.json', function (data) {
         geoLayer = L.geoJson(data, { style: style, onEachFeature: onEachFeature, smoothFactor: .5 }).addTo(map);
-        selectsource("cd")
+        for (key in sources) {
+            selectsource(key)
+            break;
+        }
         topbar()
 
         // clear loading state

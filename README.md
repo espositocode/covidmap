@@ -6,7 +6,7 @@ Requirements:
 
 Compile data:
 
-    $ python compile.py
+    $ python data.py
 
 Run server locally:
 
