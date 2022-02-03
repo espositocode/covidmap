@@ -141,6 +141,17 @@
             display: none;
         }
 
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: #ffd866;
+            color: #19181a;
+        }
+
+        .leaflet-popup-content {
+            max-height: 120px;
+            overflow-y: scroll;
+            font: 13px 'Fira Code', Helvetica, sans-serif;
+        }
+
         #cd {
             color: #ffd866;
         }
@@ -445,19 +456,56 @@
     var popup = L.popup();
 
     function onMapClick(e) {
-        console.log(mapTarget.feature.properties)
-        content = "<b>" + mapTarget.feature.properties.name + "</b><br>"
+        content = "<b>" + mapTarget.feature.properties.name + ", " + fips[mapTarget.feature.properties.state] + "</b><br>"
         if (selectedKey == "cd") {
             content = content + "Case Density: "
-            content = content + Math.round(getmean(mapTarget.feature.properties["data"]))
+            var value = Math.round(getmean(mapTarget.feature.properties["data"]))
+            if (value) {
+                content = content + value
+            } else {
+                content = content + "-"
+            }
         } else if (selectedKey == "nd") {
             content = content + "New Deaths: "
-            content = content + Math.round(getmean(mapTarget.feature.properties["data"])) 
+            var value = Math.round(getmean(mapTarget.feature.properties["data"]))
+            if (value) {
+                content = content + value
+            } else {
+                content = content + "-"
+            }
         } else if (selectedKey == "vr") {
             content = content + "Vaccinated Ratio: "
-            content = content + getmean(mapTarget.feature.properties["data"]).toFixed(2)
+            var value = getmean(mapTarget.feature.properties["data"])
+            if (value) {
+                content = content + value.toFixed(2)
+            } else {
+                content = content + "-"
+            }
         }
-        
+
+        content = content + "<br/>"
+
+        if (selectedRange) {
+            var filtered = null;
+            if (selectedRange[1] == 0) {
+                filtered = mapTarget.feature.properties["data"].slice(selectedRange[0]);
+            } else {
+                filtered = mapTarget.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
+            }
+
+            d = new Date(selectedDates[0].getTime())
+            for (idx in filtered) {
+                if (filtered[idx]) {
+                    var value = filtered[idx]
+                } else {
+                    var value = "-"
+                }
+                
+                content = content + d.toISOString().split('T')[0] + ": " + value + "<br/>"
+                d.setDate(d.getDate() + 1);
+            }
+        }
+
         popup
             .setLatLng(e.latlng)
             .setContent(content)
