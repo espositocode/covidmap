@@ -597,7 +597,7 @@
             return d.date;
         }));
 
-        y.domain([-.30, 1.1])
+        y.domain([-.35, 1.1])
 
         var defaultSelection = null;
         if (window.innerWidth > 768) {
@@ -681,7 +681,7 @@
 
         svg.append("g")
             .attr("class", "axis")
-            .attr("transform", "translate(0," + (height+2) + ")")
+            .attr("transform", "translate(0," + (height+1) + ")")
             .call(d3.axisTop(x));
         
         document.getElementById('notice').style.display = 'block';
