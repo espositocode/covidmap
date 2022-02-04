@@ -478,58 +478,28 @@
     }
 
     function updatePopup() {
-        if (!mapTargetSelected) {
+        if (!mapTargetSelected || !selectedRange) {
             return;
         }
 
-        content = "" + mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state] + "<br>"
-        if (source == "cd") {
-            content = content + "Case Density: "
-            var value = Math.round(getmean(mapTargetSelected.feature.properties["data"]))
-            if (value) {
-                content = content + value
-            } else {
-                content = content + "-"
-            }
-        } else if (source == "nd") {
-            content = content + "New Deaths: "
-            var value = Math.round(getmean(mapTargetSelected.feature.properties["data"]))
-            if (value) {
-                content = content + value
-            } else {
-                content = content + "-"
-            }
-        } else if (source == "vcr") {
-            content = content + "Vaccinations Completed Ratio: "
-            var value = getmean(mapTargetSelected.feature.properties["data"])
-            if (value) {
-                content = content + value.toFixed(2)
-            } else {
-                content = content + "-"
-            }
+        var filtered = null;
+        if (selectedRange[1] == 0) {
+            filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0]);
+        } else {
+            filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
         }
 
-        content = content + "<br/><div class='divider'></div>"
-
-        if (selectedRange) {
-            var filtered = null;
-            if (selectedRange[1] == 0) {
-                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0]);
+        var content = ""
+        var d = new Date(selectedDates[0].getTime())
+        for (idx in filtered) {
+            if (filtered[idx]) {
+                var value = filtered[idx]
             } else {
-                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
+                var value = "-"
             }
-
-            d = new Date(selectedDates[0].getTime())
-            for (idx in filtered) {
-                if (filtered[idx]) {
-                    var value = filtered[idx]
-                } else {
-                    var value = "-"
-                }
-                
-                content = content + d.toISOString().split('T')[0] + "<span class='right'>" + value + "</span><br/>"
-                d.setDate(d.getDate() + 1);
-            }
+            
+            content = content + d.toISOString().split('T')[0] + "<span class='right'>" + value + "</span><br/>"
+            d.setDate(d.getDate() + 1);
         }
         document.getElementById('data').innerHTML = content
     }
