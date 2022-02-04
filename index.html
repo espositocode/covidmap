@@ -441,7 +441,7 @@
             e.target.bringToFront();
         }
 
-        topbar(e.target.feature.properties);
+        //topbar(e.target.feature.properties);
     }
 
     function mouseout(e) {
@@ -506,15 +506,18 @@
 
     function onMapClick(e) {
         if (!mapTargetHovered) {
-            document.getElementById('data').style.display = "none"; 
+            document.getElementById('data').style.display = "none";
+            mapTargetSelected = null;
+            topbar()
             return;
         }
         document.getElementById('data').style.display = "block"; 
         mapTargetSelected = mapTargetHovered
         updatePopup()
+        topbar()
     }
 
-    function topbar(county) {
+    function topbar() {
         if (!geoLayer || !selectedDates) {
             // we are still loading data
             return;
@@ -523,8 +526,9 @@
         document.getElementById('date-begin').innerHTML = selectedDates[0].toISOString().split('T')[0] 
         document.getElementById('date-end').innerHTML = selectedDates[1].toISOString().split('T')[0]
 
-        if (county) {
-            document.getElementById('location').innerHTML = county.name + ", " + fips[county.state]
+        if (mapTargetSelected) {
+            console.log(mapTargetSelected)
+            document.getElementById('location').innerHTML = mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state]
         } else {
             document.getElementById('location').innerHTML = "United States"
         }
