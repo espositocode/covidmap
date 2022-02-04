@@ -28,18 +28,13 @@
         }
 
         a {
-            color: inherit;
+            color: #c1c0c0;
+            text-decoration-color: #c1c0c0;
         }
 
-        .divider {
-            width: 100%;
-            height: 1px;
-            border-style: solid;
-            border-color: #403e41;
-            border-width: 2px 0px 0px 0px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            display: block;
+        a.selected {
+            color: #ffd866;
+            text-decoration-color: #ffd866;
         }
 
         .right {
@@ -131,46 +126,38 @@
             stroke: none;
             z-index: 1;
         }
-    
-        #topbar {
-            background: #19181aaa;
-            font: 13px 'Fira Code', Helvetica, sans-serif;
-            color: #c1c0c0; 
-            left: 0px;
-            padding: 5px 10px 5px 10px;
-            position: absolute;
-            right: 0px;
-            top: 0px;
-            z-index: 999;
-            height: 45px;
-            line-height: 20px;
-        }
         
-        #topbar .sep {
-            padding-left: 5px; 
-            padding-right: 5px;
-            color: #403e41;
-            font-weight: bold;
-        }
-
-        #topbar .data {
-            display: inline-block;
-        }
-
-        #data {
-            display: none;
+        #sidebar {
+            display: block;
             position: absolute;
             bottom: 100px;
             left: 0px;
-            width: 200px;
-            background: #19181aaa;
-            padding: 5px 10px 5px 10px;
-            overflow-y: scroll;
-            top: 55px;
+            background: #2d2a2e;
+            padding: 0px;
+            top: 0px;
             z-index: 999;
             border-color: #fff;
             border-style: solid;
             border-width: 0px 0px 0px 0px;
+            color: #c1c0c0;
+            overflow-y: scroll;
+        }
+
+        #sidebar .sidebar-content {
+            padding: 6px 12px 6px 12px;    
+        }
+
+        #sidebar .divider {
+            border-style: solid;
+            padding: 4px 12px 4px 12px;
+            background: #403e41;
+            border-width: 0px 0px 0px 0px;
+            margin-top: 0px;
+            color: #c1c0c0;
+        }
+
+        #sidebar-data {
+            overflow-y: scroll;
         }
     
         .leaflet-container {
@@ -200,39 +187,7 @@
             color: #403e41; 
         }
 
-        #cd-title::before {
-            content: "Case Density";
-        }
-
-        #vcr-title::before {
-            content: "Vaccinations Completed Ratio";
-        }
-   
-        #nd-title::before {
-            content: "New Deaths";
-        }
-
-        #date-wrapper {
-            display: none;
-        }
-
         @media only screen and (max-width: 768px) {
-            #cd-title::before {
-                content: "CD";
-            }
-
-            #nd-title::before {
-                content: "ND";
-            }
-
-            #vcr-title::before {
-                content: "VCR";
-            }
-
-            #topbar {
-                font-size: 12px;
-            }
-    
             #notice {
                 left: 0px;
                 padding-left:19px;
@@ -240,7 +195,12 @@
                 width: auto;
             }
 
-            #location-wrapper {
+            #sidebar {
+                right: 0px;
+                bottom: auto;
+            }
+
+            .hide-mobile {
                 display: none;
             }
         }
@@ -248,25 +208,18 @@
 </head>
 <body>
     <div id="map"></div>
-    <div id="topbar">
-        <span id="loading-wrapper">Loading..</span>
-        <span id="date-wrapper">
-            <span id="date-begin"></span> - <span id="date-end"></span>
-        </span>
-        <span id="location-wrapper">
-            <span class="sep">|</span>
-            <span id="location">United States</span>
-        </span>
-        <span class="right">CovidMap.org</span></span>
-        <br/>
-        <span class="right"><a href="about.html"><span class="about">About</a></span></span>
-        <span id="cd"><a onmouseout="sourceout('cd')" onmouseover="sourceover('cd')" href="javascript:selectsource('cd')"><span id="cd-title"></span>: <span id="cd-data">-</span></a></span>
-        <span class="sep">|</span>
-        <span id="nd"><a onmouseout="sourceout('nd')" onmouseover="sourceover('nd')" href="javascript:selectsource('nd')"><span id="nd-title"></span>: <span id="nd-data">-</span></a></span>
-        <span class="sep">|</span>
-        <span id="vcr"><a onmouseout="sourceout('vcr')" onmouseover="sourceover('vcr')" href="javascript:selectsource('vcr')"><span id="vcr-title"></span>: <span id="vcr-data">-</span></a></span>
+    <div id="sidebar">
+        <div class="sidebar-content hide-mobile">CovidMap.org <a class='right' href='about.html'>About</a></span></div>
+        <div class="divider">Filters</div>
+        <div class="sidebar-content">
+            <span id="sidebar-date-begin"></span> - <span id="sidebar-date-end"></span>
+            <div id="sidebar-location"></div>
+        </div>
+        <div class="divider">Sources</div>
+        <div class="sidebar-content" id="sidebar-sources"></div>
+        <div class="divider hide-mobile">Data</div>
+        <div class="sidebar-content hide-mobile" id="sidebar-data"></div>
     </div>
-    <div id="data"></div>
     <div id="timeline"></div>
     <div id="notice">Drag the slider to show changes over time <span class="arrow">&darr;</span></div>
 </body>
@@ -388,6 +341,17 @@
     var popup = L.popup();
     map.on('click', onMapClick);
 
+    function updateSources() {
+        var content = "<form>"
+        for (key in sources) {
+            content = content + "<input type='radio'> " + sources[key]['title'] + "<br/>"
+        }
+        content = content + "</form>"
+        document.getElementById('sidebar-sources').innerHTML = content
+    }
+
+    updateSources()
+
     function datediff(first, second) {
         return Math.round((second - first) / (1000 * 60 * 60 * 24));
     }
@@ -447,7 +411,7 @@
     function mouseout(e) {
         mapTargetHovered = null;
         geoLayer.resetStyle(e.target);
-        topbar();
+        sidebar()
     }
 
     function style(feature) {
@@ -477,16 +441,42 @@
         });
     }
 
-    function updatePopup() {
-        if (!mapTargetSelected || !selectedRange) {
+    function sidebar() {
+        if (!selectedRange) {
             return;
         }
 
-        var filtered = null;
-        if (selectedRange[1] == 0) {
-            filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0]);
+        if (mapTargetSelected) {
+            document.getElementById('sidebar-location').innerHTML = mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state] + "<br/>"
         } else {
-            filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
+            document.getElementById('sidebar-location').innerHTML = "United States"
+        }
+
+        document.getElementById('sidebar-date-begin').innerHTML = selectedDates[0].toISOString().split('T')[0] 
+        document.getElementById('sidebar-date-end').innerHTML = selectedDates[1].toISOString().split('T')[0]
+
+        var value = "-"
+        if (sources[key].mean) {
+            if (sources[key]["format"] == "int") {
+                value = Math.round(sources[key].mean)
+            } else if (sources[key]["format"] == "dec") {
+                value = sources[key].mean.toFixed(2)
+            }
+        }
+
+        var filtered = null;
+        if (mapTargetSelected) {
+            if (selectedRange[1] == 0) {
+                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0]);
+            } else {
+                filtered = mapTargetSelected.feature.properties["data"].slice(selectedRange[0], selectedRange[1]);
+            }
+        } else {
+            if (selectedRange[1] == 0) {
+                filtered = country[key].slice(selectedRange[0]);
+            } else {
+                filtered = country[key].slice(selectedRange[0], selectedRange[1]);
+            }
         }
 
         var content = ""
@@ -501,50 +491,14 @@
             content = content + d.toISOString().split('T')[0] + "<span class='right'>" + value + "</span><br/>"
             d.setDate(d.getDate() + 1);
         }
-        document.getElementById('data').innerHTML = content
+
+        document.getElementById('sidebar-data').innerHTML = content + "</div>"
     }
 
     function onMapClick(e) {
-        if (!mapTargetHovered) {
-            document.getElementById('data').style.display = "none";
-            mapTargetSelected = null;
-            topbar()
-            return;
-        }
-        document.getElementById('data').style.display = "block"; 
         mapTargetSelected = mapTargetHovered
-        updatePopup()
-        topbar()
+        sidebar()
     }
-
-    function topbar() {
-        if (!geoLayer || !selectedDates) {
-            // we are still loading data
-            return;
-        }
-
-        document.getElementById('date-begin').innerHTML = selectedDates[0].toISOString().split('T')[0] 
-        document.getElementById('date-end').innerHTML = selectedDates[1].toISOString().split('T')[0]
-
-        if (mapTargetSelected) {
-            console.log(mapTargetSelected)
-            document.getElementById('location').innerHTML = mapTargetSelected.feature.properties.name + ", " + fips[mapTargetSelected.feature.properties.state]
-        } else {
-            document.getElementById('location').innerHTML = "United States"
-        }
-
-        for (key in sources) {
-            var value = "-"
-            if (sources[key].mean) {
-                if (sources[key]["format"] == "int") {
-                    value = Math.round(sources[key].mean)
-                } else if (sources[key]["format"] == "dec") {
-                    value = sources[key].mean.toFixed(2)
-                }
-            }
-            document.getElementById(key + '-data').innerHTML = value
-        }
-    };
 
     function timeline() {
         var margin = { top: 0, right: 0, bottom: 0, left: 0 },
@@ -642,8 +596,7 @@
                 notice = true;
             }
 
-            topbar()
-            updatePopup()
+            sidebar()
             if (geoLayer) {
                 geoLayer.resetStyle()
             }
@@ -684,7 +637,7 @@
         
         document.getElementById('notice').style.display = 'block';
         notice = true;
-        topbar()
+        sidebar()
     }
 
     function resize() {
@@ -734,13 +687,6 @@
     
     function selectsource(key) {
         source = key
-        for (k in sources) {
-            if (k == source) {
-                document.getElementById(k).style.color = '#ffd866';  
-            } else {
-                document.getElementById(k).style.color = '#c1c0c0';  
-            }
-        }
         d3.json(sources[key]["url"], function (data) {
             geoLayer.eachLayer(function(layer) {
                 
@@ -753,7 +699,7 @@
                 }
             });
             geoLayer.resetStyle()
-            updatePopup()
+            sidebar()
         });
     }
 
@@ -763,11 +709,7 @@
             selectsource(key)
             break;
         }
-        topbar()
-
-        // clear loading state
-        document.getElementById("loading-wrapper").style.display = "none";
-        document.getElementById("date-wrapper").style.display = "inline-block";
+        sidebar()
     });
 
     d3.json('/data/covidactnow/country.json', function (data) {
