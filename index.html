@@ -343,8 +343,14 @@
 
     function updateSources() {
         var content = "<form>"
+        var first = true;
         for (key in sources) {
-            content = content + "<input type='radio'> " + sources[key]['title'] + "<br/>"
+            content = content + "<input onclick=\"selectsource('" + key + "');\" value='" + key + "' id='" + key + "' name='source' type='radio'"
+            if (first) {
+                content = content + " checked"
+                first = false
+            }
+            content = content + "> " + sources[key]['title'] + "<br/>"
         }
         content = content + "</form>"
         document.getElementById('sidebar-sources').innerHTML = content
