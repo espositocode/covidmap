@@ -69,5 +69,6 @@ def get_counties():
     with open("data/covidactnow/counties.nd.json", "w") as f:
         f.write(json.dumps(data))
 
+print("Starting..")
 get_country()
 get_counties()
