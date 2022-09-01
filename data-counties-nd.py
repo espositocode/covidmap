@@ -38,27 +38,6 @@ def get_counties():
     r = requests.get(f'https://api.covidactnow.org/v2/counties.timeseries.json?apiKey={API_KEY}')
     counties = r.json()
 
-    # build metricsTimeseries/caseDensity
-    data = {}
-    for county in counties:
-        data[county["fips"]] = {
-            "cd": [value for value in gather(county["metricsTimeseries"], "caseDensity")]
-        }
-
-    with open("data/covidactnow/counties.cd.json", "w") as f:
-        f.write(json.dumps(data))
-
-    # build metricsTimeseries/vaccinationsCompletedRatio
-    data = {}
-    for county in counties:
-        data[county["fips"]] = {
-            "max": 1,
-            "vcr": [value for value in gather(county["metricsTimeseries"], "vaccinationsCompletedRatio")]
-        }
-
-    with open("data/covidactnow/counties.vcr.json", "w") as f:
-        f.write(json.dumps(data))
-
     # build actualsTimeseries/newDeaths
     data = {}
     for county in counties:
@@ -69,6 +48,4 @@ def get_counties():
     with open("data/covidactnow/counties.nd.json", "w") as f:
         f.write(json.dumps(data))
 
-print("Starting..")
-get_country()
-# get_counties()
+get_counties()
