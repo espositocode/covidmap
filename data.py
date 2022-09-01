@@ -71,4 +71,4 @@ def get_counties():
 
 print("Starting..")
 get_country()
-get_counties()
+# get_counties()
