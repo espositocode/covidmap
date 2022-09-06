@@ -36,7 +36,7 @@ def get_country():
         f.write(json.dumps(data))
 
 
-def get_counties(state):
+def get_counties():
     print(f"Downloading counties")
     r = requests.get(f'https://api.covidactnow.org/v2/counties.timeseries.json?apiKey={API_KEY}')
     counties = r.json()
