@@ -1,4 +1,4 @@
-name: country
+name: data
 
 on:
   workflow_dispatch:
