@@ -41,8 +41,6 @@ def get_counties():
     r = requests.get(f'https://api.covidactnow.org/v2/counties.timeseries.json?apiKey={API_KEY}')
     counties = r.json()
 
-    raise ValueError("test")
-    
     # build metricsTimeseries/caseDensity
     data = {}
     for county in counties:
