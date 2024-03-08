@@ -313,15 +313,16 @@
         "60": "American Samoa"
     }
 
-    const today = new Date()
+    //const today = new Date()
+    const today = new Date(2022, 11, 11)
 
     const nullbg = '#fff'
-    //const colors = ['#EFE09B', '#F1c676', '#F2AC54', '#F19140', '#EB7331', '#DF5B2A', '#C74638', '#B73839', '#A12C45', '#80233A', '#671D46', '#45133C']
+    const colors = ['#EFE09B', '#F1c676', '#F2AC54', '#F19140', '#EB7331', '#DF5B2A', '#C74638', '#B73839', '#A12C45', '#80233A', '#671D46', '#45133C']
 
     // graident inner
     //const colors = ['#fdf6e3', '#eee8d5', '#93a1a1', '#8B9B9C', '#839496', '#74888D', '#657b83', '#5F757C', '#586e75', '#30525C', '#073642', '#002b36']
     // graident outer
-    const colors = ['#fdf6e3', '#F6EFDC', '#eee8d5', '#C1C5BB', '#93A1A1', '#839496', '#657b83', '#586e75', '#30525C', '#073642', '#04313C', '#002B36']
+    //const colors = ['#fdf6e3', '#F6EFDC', '#eee8d5', '#C1C5BB', '#93A1A1', '#839496', '#657b83', '#586e75', '#30525C', '#073642', '#04313C', '#002B36']
 
     var source = "cd";
     var sources = {
@@ -394,7 +395,7 @@
     }
 
     function datedays(days) {
-        var date = new Date();
+        var date = new Date(2022, 11, 11);
         date.setDate(date.getDate() - days);
         return date;
     }
