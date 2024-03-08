@@ -8,9 +8,6 @@
     <meta name="description" content="Plot covid cases geographically over time">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
-    <link rel="preconnect" href="https://fonts.googleapis.com"> 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&family=Noto+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <style>
@@ -21,7 +18,7 @@
             width: 100%;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            font-family: 'Fira Code', Helvetica, sans-serif;
+            font-family: Helvetica;
             color: #c1c0c0;
             font-size: 13px;
         }
@@ -50,7 +47,7 @@
         }
 
         #notice {
-            font-family: "Noto Sans Mono";
+            font-family: monospace;
             background: #ffffff11;
             bottom: 100px;
             border-radius: 5px;
@@ -113,7 +110,7 @@
    
         #timeline .tick text {
             fill: #fff;
-            font-family: 'Noto Sans Mono';
+            font-family: monospace;
             font-weight: 500; 
             opacity: 1;
             z-index: 1;
@@ -132,7 +129,7 @@
         }
        
         #topbar {
-            font-family: "Noto Sans Mono";
+            font-family: monospace;
             background: #21222b;
             position: absolute;
             display: block;
