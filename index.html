@@ -51,13 +51,13 @@
 
         #notice {
             font-family: "Noto Sans Mono";
-            background: #f7f7f7;
+            background: #ffffff11;
             bottom: 100px;
             border-radius: 5px;
             border-color: #e9e9e9;
-            border-width: 1px;
+            border-width: 0px;
             border-style: solid;
-            color: #586e75;
+            color: #fff;
             display: none;
             font-size: 13px;
             position: absolute;
@@ -76,7 +76,7 @@
         }
     
         #timeline {
-            background: #f7f7f7;
+            background: #21222b;
             bottom: 0px;
             height: 100px;
             left: 0px;
@@ -84,7 +84,7 @@
             right: 0px;
             z-index: 999;
             border-style: solid;
-            border-width: 1px 0px 0px 0px;
+            border-width: 0px 0px 0px 0px;
             border-color: #586e75;
         }
 
@@ -96,23 +96,23 @@
         }
     
         #timeline .cdline {
-            stroke: #586e75;
+            stroke: #fff;
         }
 
         #timeline .vcrline {
-            stroke: #586e7511;
+            stroke: #ffffff11;
         }
 
         #timeline .ndline {
-            stroke: #586e7511;
+            stroke: #ffffff11;
         }
 
         #timeline .overline {
-            stroke: #eee8d5;
+            stroke: #fff;
         }
    
         #timeline .tick text {
-            fill: #586e75;
+            fill: #fff;
             font-family: 'Noto Sans Mono';
             font-weight: 500; 
             opacity: 1;
@@ -124,7 +124,7 @@
         }
         
         #timeline .selection {
-            fill: #586e75;
+            fill: #ffffffaa;
             fill-opacity: 1;
             opacity: 1;
             stroke: none;
@@ -133,18 +133,18 @@
        
         #topbar {
             font-family: "Noto Sans Mono";
-            background: #f7f7f7;
+            background: #21222b;
             position: absolute;
             display: block;
             top: 0;
             left: 0px;
             right: 0px;
             padding: 10px;
-            color: #586e75; 
+            color: #fff; 
             z-index: 900;
-            font-weight: 500;
+            font-weight: 200;
             border-style: solid;
-            border-width: 0px 0px 1px 0px;
+            border-width: 0px 0px 0px 0px;
             border-color: #586e75;
         }
 
@@ -171,7 +171,7 @@
         #sidebar .header {
             border-style: solid;
             padding: 4px 12px 4px 12px;
-            background: #ffffffaa;
+            background: #21222b;
             border-width: 0px 0px 0px 0px;
             margin-top: 0px;
             font-weight: 999;
@@ -183,7 +183,7 @@
         }
     
         .leaflet-container {
-            background: #fdf6e311;
+            background: #282a35;
         }
     
         .leaflet-control-attribution {
@@ -231,7 +231,7 @@
 <body>
     <div id="map"></div>
     <div id="topbar">
-        <span style="font-weight: 700">Dates:</span> <span id="sidebar-date-begin"></span> - <span id="sidebar-date-end"></span>
+        <span style="font-weight: 500">Dates:</span> <span id="sidebar-date-begin"></span> - <span id="sidebar-date-end"></span>
         &nbsp;
         <!--<span style="font-weight: 700">Case Density:</span> <span>823</span>-->
     </div>
